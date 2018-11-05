@@ -49,14 +49,14 @@ const selectFileAndAddBlob = async function (options = {}) {
   }
 
   return await window.client.addBlob({
-    stream: file,
+    content: file,
     fileName: 'wolkenkit.png',
     contentType: options.contentType
   });
 };
 
 const getBlobAndTransformIntoArray = async function (options = {}) {
-  const { stream, fileName, contentType } = await window.client.getBlob({ id: options.id });
+  const { content, fileName, contentType } = await window.client.getBlob({ id: options.id });
 
   const result = await new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -64,13 +64,13 @@ const getBlobAndTransformIntoArray = async function (options = {}) {
     try {
       reader.addEventListener('loadend', () => {
         resolve({
-          stream: Array.from(new Uint8Array(reader.result)),
+          content: Array.from(new Uint8Array(reader.result)),
           fileName,
           contentType
         });
       });
 
-      reader.readAsArrayBuffer(stream);
+      reader.readAsArrayBuffer(content);
     } catch (ex) {
       reject(ex);
     }
@@ -140,7 +140,7 @@ suite('browser', function () {
       const id = await page.evaluate(selectFileAndAddBlob);
       const result = await page.evaluate(getBlobAndTransformIntoArray, { id });
 
-      assert.that(result.stream).is.equalTo(originalImage);
+      assert.that(result.content).is.equalTo(originalImage);
       assert.that(result.fileName).is.equalTo(originalFile.fileName);
       assert.that(result.contentType).is.equalTo('application/octet-stream');
     });
@@ -303,22 +303,16 @@ suite('browser', function () {
         }, { id, isAuthorized });
       }).is.not.throwingAsync();
 
-      let size;
-
       await assert.that(async () => {
-        size = await page.evaluate(async options => {
+        await page.evaluate(async options => {
           window.publicClient = new window.DepotClient({
             host: 'localhost',
             port: 3000
           });
 
-          const blobInBrowser = await window.publicClient.getBlob({ id: options.id });
-
-          return blobInBrowser.stream.size;
+          await window.publicClient.getBlob({ id: options.id });
         }, { id });
       }).is.not.throwingAsync();
-
-      assert.that(size).is.equalTo(26909);
     });
 
     test('throws an error if the specified blob does not exist.', async () => {

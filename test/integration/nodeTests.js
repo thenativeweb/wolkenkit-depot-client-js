@@ -12,12 +12,12 @@ const DepotClient = require('../../src/DepotClient'),
 
 const getUpload = function () {
   const dataPath = path.join(__dirname, '..', 'shared', 'data', 'wolkenkit.png');
-  const stream = fs.createReadStream(dataPath);
+  const content = fs.createReadStream(dataPath);
 
   return {
     fileName: 'wolkenkit.png',
     contentType: 'image/png',
-    stream
+    content
   };
 };
 
@@ -34,8 +34,8 @@ suite('Node.js', () => {
 
   suite('addBlob', () => {
     test('returns the id.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       assert.that(uuid.is(id)).is.true();
     });
@@ -46,35 +46,35 @@ suite('Node.js', () => {
         port: 3000
       });
 
-      const { stream, fileName } = getUpload();
+      const { content, fileName } = getUpload();
 
       await assert.that(async () => {
-        await depot.addBlob({ stream, fileName });
+        await depot.addBlob({ content, fileName });
       }).is.throwingAsync('Authentication required.');
     });
   });
 
   suite('getBlob', () => {
     test('returns the blob.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       const blob = await depot.getBlob({ id });
 
-      blob.stream.resume();
+      blob.content.resume();
 
-      assert.that(blob.stream).is.instanceOf(Readable);
+      assert.that(blob.content).is.instanceOf(Readable);
       assert.that(blob.fileName).is.equalTo(fileName);
       assert.that(blob.contentType).is.equalTo('application/octet-stream');
     });
 
     test('returns the blob with the specified content type.', async () => {
-      const { stream, fileName, contentType } = getUpload();
-      const id = await depot.addBlob({ stream, fileName, contentType });
+      const { content, fileName, contentType } = getUpload();
+      const id = await depot.addBlob({ content, fileName, contentType });
 
       const blob = await depot.getBlob({ id });
 
-      blob.stream.resume();
+      blob.content.resume();
 
       assert.that(blob.contentType).is.equalTo(contentType);
     });
@@ -88,8 +88,8 @@ suite('Node.js', () => {
     });
 
     test('throws an error if the user is not authorized to get a blob.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -104,8 +104,8 @@ suite('Node.js', () => {
 
   suite('removeBlob', () => {
     test('removes the blob.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       await assert.that(async () => {
         await depot.removeBlob({ id });
@@ -125,8 +125,8 @@ suite('Node.js', () => {
     });
 
     test('throws an error if the user is not authorized to remove a blob.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -141,8 +141,8 @@ suite('Node.js', () => {
 
   suite('transferOwnership', () => {
     test('transfers the ownership.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       await assert.that(async () => {
         await depot.transferOwnership({ id, to: uuid() });
@@ -162,8 +162,8 @@ suite('Node.js', () => {
     });
 
     test('throws an error if the user is not authorized to transfer the ownership.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -178,8 +178,8 @@ suite('Node.js', () => {
 
   suite('authorize', () => {
     test('authorizes the blob.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
       const isAuthorized = {
         queries: {
           getBlob: { forPublic: true }
@@ -201,7 +201,7 @@ suite('Node.js', () => {
         blob = await depotPublic.getBlob({ id });
       }).is.not.throwingAsync();
 
-      blob.stream.resume();
+      blob.content.resume();
     });
 
     test('throws an error if the specified blob does not exist.', async () => {
@@ -218,8 +218,8 @@ suite('Node.js', () => {
     });
 
     test('throws an error if the user is not authorized to authorize.', async () => {
-      const { stream, fileName } = getUpload();
-      const id = await depot.addBlob({ stream, fileName });
+      const { content, fileName } = getUpload();
+      const id = await depot.addBlob({ content, fileName });
       const isAuthorized = {
         queries: {
           getBlob: { forPublic: true }

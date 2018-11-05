@@ -34,15 +34,15 @@ suite('DepotClient', () => {
         assert.that(depotClient.addBlob).is.ofType('function');
       });
 
-      test('throws an error if stream is missing.', async () => {
+      test('throws an error if content is missing.', async () => {
         await assert.that(async () => {
           await depotClient.addBlob({});
-        }).is.throwingAsync('Stream is missing.');
+        }).is.throwingAsync('Content is missing.');
       });
 
       test('throws an error if file name is missing.', async () => {
         await assert.that(async () => {
-          await depotClient.addBlob({ stream: {}});
+          await depotClient.addBlob({ content: {}});
         }).is.throwingAsync('File name is missing.');
       });
     });

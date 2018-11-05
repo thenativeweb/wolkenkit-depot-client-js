@@ -14,9 +14,9 @@ class DepotClient {
     this.token = token;
   }
 
-  async addBlob ({ stream, fileName, contentType, isAuthorized }) {
-    if (!stream) {
-      throw new Error('Stream is missing.');
+  async addBlob ({ content, fileName, contentType, isAuthorized }) {
+    if (!content) {
+      throw new Error('Content is missing.');
     }
     if (!fileName) {
       throw new Error('File name is missing.');
@@ -45,7 +45,7 @@ class DepotClient {
       response = await request({
         method: 'post',
         url: `https://${host}:${port}/api/v1/add-blob`,
-        data: stream,
+        data: content,
         headers
       });
     } catch (ex) {
@@ -96,10 +96,10 @@ class DepotClient {
     }
 
     const { fileName, contentType } = JSON.parse(response.headers['x-metadata']);
-    const stream = response.data;
+    const content = response.data;
 
     return {
-      stream,
+      content,
       fileName,
       contentType
     };
