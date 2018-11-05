@@ -100,6 +100,21 @@ suite('Node.js', () => {
         await depotOther.getBlob({ id });
       }).is.throwingAsync('Authentication required.');
     });
+
+    suite('asDataUrl', () => {
+      test('throws an error.', async () => {
+        const { content, fileName, contentType } = getUpload();
+        const id = await depot.addBlob({ content, fileName, contentType });
+
+        const blob = await depot.getBlob({ id });
+
+        await assert.that(async () => {
+          await blob.asDataUrl();
+        }).is.throwingAsync('This function is not yet supported in Node.js.');
+
+        blob.content.resume();
+      });
+    });
   });
 
   suite('removeBlob', () => {

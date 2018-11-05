@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals document, FileReader, window */
+/* globals window */
 
 const fs = require('fs'),
       http = require('http'),
@@ -40,7 +40,7 @@ const createClient = async function (options = {}) {
 };
 
 const selectFileAndAddBlob = async function (options = {}) {
-  const fileInput = document.getElementById('file-input');
+  const fileInput = window.document.getElementById('file-input');
 
   const file = fileInput.files[0];
 
@@ -59,7 +59,7 @@ const getBlobAndTransformIntoArray = async function (options = {}) {
   const { content, fileName, contentType } = await window.client.getBlob({ id: options.id });
 
   const result = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const reader = new window.FileReader();
 
     try {
       reader.addEventListener('loadend', () => {
@@ -75,6 +75,14 @@ const getBlobAndTransformIntoArray = async function (options = {}) {
       reject(ex);
     }
   });
+
+  return result;
+};
+
+const getBlobAndTransformIntoDataUrl = async function (options = {}) {
+  const blob = await window.client.getBlob({ id: options.id });
+
+  const result = await blob.asDataUrl();
 
   return result;
 };
@@ -181,6 +189,32 @@ suite('browser', function () {
           return await window.otherClient.getBlob({ id: options.id });
         }, { id });
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
+    });
+
+    suite('asDataUrl', () => {
+      test('returns the data url.', async () => {
+        const originalFile = await chooseFileToUpload({ page });
+
+        await page.evaluate(createClient, { token });
+        const id = await page.evaluate(selectFileAndAddBlob, { contentType: originalFile.contentType });
+        const result = await page.evaluate(getBlobAndTransformIntoDataUrl, { id });
+
+        await page.evaluate(async options => {
+          const image = new window.Image();
+
+          image.id = 'result-image';
+          image.src = options.result;
+
+          window.document.body.appendChild(image);
+        }, { result });
+
+        const dimensions = await page.$eval('#result-image', el => ({ width: el.clientWidth, height: el.clientHeight }));
+
+        assert.that(dimensions).is.equalTo({
+          width: 382,
+          height: 452
+        });
+      });
     });
   });
 
