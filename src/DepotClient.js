@@ -24,7 +24,7 @@ const convertContentToDataUrl = async function ({ content }) {
     } catch (ex) {
       reject(ex);
     } finally {
-      reader.removeEventListener('load', onLoad);
+      reader.removeEventListener('loadend', onLoad);
     }
   });
 
