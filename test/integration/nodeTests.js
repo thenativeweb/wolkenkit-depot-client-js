@@ -7,7 +7,7 @@ const fs = require('fs'),
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const depotClient = require('../../src/depotClient'),
+const DepotClient = require('../../src/DepotClient'),
       issueToken = require('./issueToken');
 
 const getUpload = function () {
@@ -21,11 +21,11 @@ const getUpload = function () {
   };
 };
 
-suite('integration', () => {
+suite('Node.js', () => {
   let depot;
 
   setup(async () => {
-    depot = await depotClient.connect({
+    depot = new DepotClient({
       host: 'localhost',
       port: 3000,
       token: issueToken('Jane Doe')
@@ -41,7 +41,7 @@ suite('integration', () => {
     });
 
     test('throws an error if the user is not authorized to add blobs.', async () => {
-      depot = await depotClient.connect({
+      depot = new DepotClient({
         host: 'localhost',
         port: 3000
       });
@@ -91,7 +91,7 @@ suite('integration', () => {
       const { stream, fileName } = getUpload();
       const id = await depot.addBlob({ stream, fileName });
 
-      const depotOther = await depotClient.connect({
+      const depotOther = new DepotClient({
         host: 'localhost',
         port: 3000
       });
@@ -128,7 +128,7 @@ suite('integration', () => {
       const { stream, fileName } = getUpload();
       const id = await depot.addBlob({ stream, fileName });
 
-      const depotOther = await depotClient.connect({
+      const depotOther = new DepotClient({
         host: 'localhost',
         port: 3000
       });
@@ -165,7 +165,7 @@ suite('integration', () => {
       const { stream, fileName } = getUpload();
       const id = await depot.addBlob({ stream, fileName });
 
-      const depotOther = await depotClient.connect({
+      const depotOther = new DepotClient({
         host: 'localhost',
         port: 3000
       });
@@ -190,7 +190,7 @@ suite('integration', () => {
         await depot.authorize({ id, isAuthorized });
       }).is.not.throwingAsync();
 
-      const depotPublic = await depotClient.connect({
+      const depotPublic = new DepotClient({
         host: 'localhost',
         port: 3000
       });
@@ -226,7 +226,7 @@ suite('integration', () => {
         }
       };
 
-      const depotOther = await depotClient.connect({
+      const depotOther = new DepotClient({
         host: 'localhost',
         port: 3000
       });

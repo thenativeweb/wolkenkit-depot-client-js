@@ -1,72 +1,114 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat'),
+      uuid = require('uuidv4');
 
-const Depot = require('../../src/Depot'),
-      depotClient = require('../../src/depotClient');
+const DepotClient = require('../../src/DepotClient');
 
-suite('depotClient', () => {
-  test('is an object.', async () => {
-    assert.that(depotClient).is.ofType('object');
+suite('DepotClient', () => {
+  test('is a function.', async () => {
+    assert.that(DepotClient).is.ofType('function');
   });
 
-  suite('connect', () => {
-    test('is a function.', async () => {
-      assert.that(depotClient.connect).is.ofType('function');
+  test('throws an error if host is missing.', async () => {
+    assert.that(() => {
+      /* eslint-disable no-new */
+      new DepotClient({});
+      /* eslint-enable no-new */
+    }).is.throwing('Host is missing.');
+  });
+
+  suite('instance', () => {
+    let depotClient;
+
+    setup(() => {
+      depotClient = new DepotClient({
+        host: 'localhost',
+        port: 443,
+        token: ''
+      });
     });
 
-    test('throws an error if host is missing.', async () => {
-      await assert.that(async () => {
-        await depotClient.connect({});
-      }).is.throwingAsync('Host is missing.');
+    suite('addBlob', () => {
+      test('is a function.', async () => {
+        assert.that(depotClient.addBlob).is.ofType('function');
+      });
+
+      test('throws an error if stream is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.addBlob({});
+        }).is.throwingAsync('Stream is missing.');
+      });
+
+      test('throws an error if file name is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.addBlob({ stream: {}});
+        }).is.throwingAsync('File name is missing.');
+      });
     });
 
-    test('returns a depot.', async () => {
-      const depot = await depotClient.connect({ host: 'localhost' });
+    suite('getBlob', () => {
+      test('is a function.', async () => {
+        assert.that(depotClient.getBlob).is.ofType('function');
+      });
 
-      assert.that(depot).is.instanceOf(Depot);
+      test('throws an error if id is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.getBlob({});
+        }).is.throwingAsync('Id is missing.');
+      });
     });
 
-    test('returns different depots for different hosts.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost' });
-      const depot2 = await depotClient.connect({ host: 'wolkenkit.io' });
+    suite('removeBlob', () => {
+      test('is a function.', async () => {
+        assert.that(depotClient.removeBlob).is.ofType('function');
+      });
 
-      assert.that(depot1).is.not.sameAs(depot2);
+      test('throws an error if id is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.removeBlob({});
+        }).is.throwingAsync('Id is missing.');
+      });
     });
 
-    test('returns the same depot if the hosts are identical.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost' });
-      const depot2 = await depotClient.connect({ host: 'localhost' });
+    suite('transferOwnership', () => {
+      test('is a function.', async () => {
+        assert.that(depotClient.transferOwnership).is.ofType('function');
+      });
 
-      assert.that(depot1).is.sameAs(depot2);
+      test('throws an error if id is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.transferOwnership({});
+        }).is.throwingAsync('Id is missing.');
+      });
+
+      test('throws an error if to is missing.', async () => {
+        const id = uuid();
+
+        await assert.that(async () => {
+          await depotClient.transferOwnership({ id });
+        }).is.throwingAsync('To is missing.');
+      });
     });
 
-    test('returns different depots for different ports.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost', port: 443 });
-      const depot2 = await depotClient.connect({ host: 'localhost', port: 3000 });
+    suite('authorize', () => {
+      test('is a function.', async () => {
+        assert.that(depotClient.authorize).is.ofType('function');
+      });
 
-      assert.that(depot1).is.not.sameAs(depot2);
-    });
+      test('throws an error if id is missing.', async () => {
+        await assert.that(async () => {
+          await depotClient.authorize({});
+        }).is.throwingAsync('Id is missing.');
+      });
 
-    test('returns the same depot if the hosts and ports are identical.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost', port: 443 });
-      const depot2 = await depotClient.connect({ host: 'localhost', port: 443 });
+      test('throws an error if is authorized is missing.', async () => {
+        const id = uuid();
 
-      assert.that(depot1).is.sameAs(depot2);
-    });
-
-    test('returns different depots for different tokens.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost', port: 443, token: 'token1' });
-      const depot2 = await depotClient.connect({ host: 'localhost', port: 443, token: 'token2' });
-
-      assert.that(depot1).is.not.sameAs(depot2);
-    });
-
-    test('returns the same depot if the hosts, ports and tokens are identical.', async () => {
-      const depot1 = await depotClient.connect({ host: 'localhost', port: 443, token: 'token' });
-      const depot2 = await depotClient.connect({ host: 'localhost', port: 443, token: 'token' });
-
-      assert.that(depot1).is.sameAs(depot2);
+        await assert.that(async () => {
+          await depotClient.authorize({ id });
+        }).is.throwingAsync('Is authorized is missing.');
+      });
     });
   });
 });
