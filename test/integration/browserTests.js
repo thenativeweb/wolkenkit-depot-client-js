@@ -82,9 +82,9 @@ const getBlobAndTransformIntoArray = async function (options = {}) {
 const getBlobAndTransformIntoDataUrl = async function (options = {}) {
   const blob = await window.client.getBlob({ id: options.id });
 
-  const result = await blob.asDataUrl();
+  const dataUrl = await blob.asDataUrl();
 
-  return result;
+  return dataUrl;
 };
 
 suite('browser', function () {

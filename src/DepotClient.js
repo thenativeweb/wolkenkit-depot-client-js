@@ -3,33 +3,7 @@
 const isNode = require('is-node'),
       request = require('axios');
 
-/* globals window */
-
-const convertContentToDataUrl = async function ({ content }) {
-  if (isNode) {
-    throw new Error('This function is not yet supported in Node.js.');
-  }
-
-  const reader = new window.FileReader();
-
-  await new Promise((resolve, reject) => {
-    const onLoad = () => {
-      resolve();
-    };
-
-    reader.addEventListener('loadend', onLoad);
-
-    try {
-      reader.readAsDataURL(content);
-    } catch (ex) {
-      reject(ex);
-    } finally {
-      reader.removeEventListener('loadend', onLoad);
-    }
-  });
-
-  return reader.result;
-};
+const convertContentToDataUrl = require('./convertContentToDataUrl');
 
 class DepotClient {
   constructor ({ host, port = 443, token = '' }) {
@@ -131,7 +105,7 @@ class DepotClient {
       fileName,
       contentType,
       async asDataUrl () {
-        return await convertContentToDataUrl({ content });
+        return await convertContentToDataUrl({ content, contentType });
       }
     };
   }

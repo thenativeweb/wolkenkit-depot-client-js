@@ -102,17 +102,15 @@ suite('Node.js', () => {
     });
 
     suite('asDataUrl', () => {
-      test('throws an error.', async () => {
+      test('returns the data url.', async () => {
         const { content, fileName, contentType } = getUpload();
         const id = await depot.addBlob({ content, fileName, contentType });
 
         const blob = await depot.getBlob({ id });
+        const dataUrl = await blob.asDataUrl();
 
-        await assert.that(async () => {
-          await blob.asDataUrl();
-        }).is.throwingAsync('This function is not yet supported in Node.js.');
-
-        blob.content.resume();
+        assert.that(dataUrl).is.startingWith('data:image/png;base64,iVBORw0KGgoAAAAN');
+        assert.that(dataUrl).is.endingWith('AAAASUVORK5CYII=');
       });
     });
   });
