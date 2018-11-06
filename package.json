@@ -29,7 +29,7 @@
     "express": "4.16.4",
     "limes": "1.1.0",
     "puppeteer": "1.10.0",
-    "roboter": "2.0.0",
+    "roboter": "2.1.0",
     "shelljs": "0.8.2",
     "uuidv4": "2.0.0",
     "webpack": "4.25.1"
