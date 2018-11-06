@@ -5,12 +5,18 @@ const isNode = require('is-node'),
 
 const convertContentToDataUrl = require('./convertContentToDataUrl');
 
+const validProtocols = [ 'http', 'https' ];
+
 class DepotClient {
-  constructor ({ host, port = 443, token = '' }) {
+  constructor ({ protocol = 'https', host, port = 443, token = '' }) {
+    if (!validProtocols.includes(protocol)) {
+      throw new Error('Invalid protocol.');
+    }
     if (!host) {
       throw new Error('Host is missing.');
     }
 
+    this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.token = token;
@@ -24,7 +30,7 @@ class DepotClient {
       throw new Error('File name is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { fileName };
 
@@ -46,7 +52,7 @@ class DepotClient {
     try {
       response = await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/add-blob`,
+        url: `${protocol}://${host}:${port}/api/v1/add-blob`,
         data: content,
         headers
       });
@@ -69,7 +75,7 @@ class DepotClient {
       throw new Error('Id is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const headers = {};
 
@@ -82,7 +88,7 @@ class DepotClient {
     try {
       response = await request({
         method: 'get',
-        url: `https://${host}:${port}/api/v1/blob/${id}`,
+        url: `${protocol}://${host}:${port}/api/v1/blob/${id}`,
         headers,
         responseType: isNode ? 'stream' : 'blob'
       });
@@ -115,7 +121,7 @@ class DepotClient {
       throw new Error('Id is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id };
     const headers = { 'x-metadata': JSON.stringify(metadata) };
@@ -127,7 +133,7 @@ class DepotClient {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/remove-blob`,
+        url: `${protocol}://${host}:${port}/api/v1/remove-blob`,
         headers
       });
     } catch (ex) {
@@ -150,7 +156,7 @@ class DepotClient {
       throw new Error('To is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id };
     const headers = {
@@ -165,7 +171,7 @@ class DepotClient {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/transfer-ownership`,
+        url: `${protocol}://${host}:${port}/api/v1/transfer-ownership`,
         headers
       });
     } catch (ex) {
@@ -188,7 +194,7 @@ class DepotClient {
       throw new Error('Is authorized is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id, isAuthorized };
     const headers = { 'x-metadata': JSON.stringify(metadata) };
@@ -200,7 +206,7 @@ class DepotClient {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/authorize`,
+        url: `${protocol}://${host}:${port}/api/v1/authorize`,
         headers
       });
     } catch (ex) {

@@ -10,6 +10,14 @@ suite('DepotClient', () => {
     assert.that(DepotClient).is.ofType('function');
   });
 
+  test('throws an error if an invalid protocol is given.', async () => {
+    assert.that(() => {
+      /* eslint-disable no-new */
+      new DepotClient({ protocol: 'unknown' });
+      /* eslint-enable no-new */
+    }).is.throwing('Invalid protocol.');
+  });
+
   test('throws an error if host is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
