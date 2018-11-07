@@ -4,6 +4,7 @@
 
 # Build artefacts
 *build/
+test/integration/frontend/DepotClient.browser.js
 
 # OS generated files and folders
 .DS_Store

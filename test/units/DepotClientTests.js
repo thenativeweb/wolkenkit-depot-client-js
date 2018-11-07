@@ -3,42 +3,34 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const Depot = require('../../src/Depot');
+const DepotClient = require('../../src/DepotClient');
 
-suite('Depot', () => {
+suite('DepotClient', () => {
   test('is a function.', async () => {
-    assert.that(Depot).is.ofType('function');
+    assert.that(DepotClient).is.ofType('function');
+  });
+
+  test('throws an error if an invalid protocol is given.', async () => {
+    assert.that(() => {
+      /* eslint-disable no-new */
+      new DepotClient({ protocol: 'unknown' });
+      /* eslint-enable no-new */
+    }).is.throwing('Invalid protocol.');
   });
 
   test('throws an error if host is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new Depot({});
+      new DepotClient({});
       /* eslint-enable no-new */
     }).is.throwing('Host is missing.');
   });
 
-  test('throws an error if port is missing.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new Depot({ host: 'localhost' });
-      /* eslint-enable no-new */
-    }).is.throwing('Port is missing.');
-  });
-
-  test('throws an error if token is missing.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new Depot({ host: 'localhost', port: 443 });
-      /* eslint-enable no-new */
-    }).is.throwing('Token is missing.');
-  });
-
   suite('instance', () => {
-    let depot;
+    let depotClient;
 
     setup(() => {
-      depot = new Depot({
+      depotClient = new DepotClient({
         host: 'localhost',
         port: 443,
         token: ''
@@ -47,54 +39,54 @@ suite('Depot', () => {
 
     suite('addBlob', () => {
       test('is a function.', async () => {
-        assert.that(depot.addBlob).is.ofType('function');
+        assert.that(depotClient.addBlob).is.ofType('function');
       });
 
-      test('throws an error if stream is missing.', async () => {
+      test('throws an error if content is missing.', async () => {
         await assert.that(async () => {
-          await depot.addBlob({});
-        }).is.throwingAsync('Stream is missing.');
+          await depotClient.addBlob({});
+        }).is.throwingAsync('Content is missing.');
       });
 
       test('throws an error if file name is missing.', async () => {
         await assert.that(async () => {
-          await depot.addBlob({ stream: {}});
+          await depotClient.addBlob({ content: {}});
         }).is.throwingAsync('File name is missing.');
       });
     });
 
     suite('getBlob', () => {
       test('is a function.', async () => {
-        assert.that(depot.getBlob).is.ofType('function');
+        assert.that(depotClient.getBlob).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depot.getBlob({});
+          await depotClient.getBlob({});
         }).is.throwingAsync('Id is missing.');
       });
     });
 
     suite('removeBlob', () => {
       test('is a function.', async () => {
-        assert.that(depot.removeBlob).is.ofType('function');
+        assert.that(depotClient.removeBlob).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depot.removeBlob({});
+          await depotClient.removeBlob({});
         }).is.throwingAsync('Id is missing.');
       });
     });
 
     suite('transferOwnership', () => {
       test('is a function.', async () => {
-        assert.that(depot.transferOwnership).is.ofType('function');
+        assert.that(depotClient.transferOwnership).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depot.transferOwnership({});
+          await depotClient.transferOwnership({});
         }).is.throwingAsync('Id is missing.');
       });
 
@@ -102,19 +94,19 @@ suite('Depot', () => {
         const id = uuid();
 
         await assert.that(async () => {
-          await depot.transferOwnership({ id });
+          await depotClient.transferOwnership({ id });
         }).is.throwingAsync('To is missing.');
       });
     });
 
     suite('authorize', () => {
       test('is a function.', async () => {
-        assert.that(depot.authorize).is.ofType('function');
+        assert.that(depotClient.authorize).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depot.authorize({});
+          await depotClient.authorize({});
         }).is.throwingAsync('Id is missing.');
       });
 
@@ -122,7 +114,7 @@ suite('Depot', () => {
         const id = uuid();
 
         await assert.that(async () => {
-          await depot.authorize({ id });
+          await depotClient.authorize({ id });
         }).is.throwingAsync('Is authorized is missing.');
       });
     });

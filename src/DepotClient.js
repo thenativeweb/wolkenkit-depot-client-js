@@ -1,33 +1,36 @@
 'use strict';
 
-const request = require('axios');
+const isNode = require('is-node'),
+      request = require('axios');
 
-class Depot {
-  constructor ({ host, port, token }) {
+const convertContentToDataUrl = require('./convertContentToDataUrl');
+
+const validProtocols = [ 'http', 'https' ];
+
+class DepotClient {
+  constructor ({ protocol = 'https', host, port = 443, token = '' }) {
+    if (!validProtocols.includes(protocol)) {
+      throw new Error('Invalid protocol.');
+    }
     if (!host) {
       throw new Error('Host is missing.');
     }
-    if (!port) {
-      throw new Error('Port is missing.');
-    }
-    if (token === undefined) {
-      throw new Error('Token is missing.');
-    }
 
+    this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.token = token;
   }
 
-  async addBlob ({ stream, fileName, contentType, isAuthorized }) {
-    if (!stream) {
-      throw new Error('Stream is missing.');
+  async addBlob ({ content, fileName, contentType, isAuthorized }) {
+    if (!content) {
+      throw new Error('Content is missing.');
     }
     if (!fileName) {
       throw new Error('File name is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { fileName };
 
@@ -49,8 +52,8 @@ class Depot {
     try {
       response = await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/add-blob`,
-        data: stream,
+        url: `${protocol}://${host}:${port}/api/v1/add-blob`,
+        data: content,
         headers
       });
     } catch (ex) {
@@ -72,7 +75,7 @@ class Depot {
       throw new Error('Id is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const headers = {};
 
@@ -85,9 +88,9 @@ class Depot {
     try {
       response = await request({
         method: 'get',
-        url: `https://${host}:${port}/api/v1/blob/${id}`,
+        url: `${protocol}://${host}:${port}/api/v1/blob/${id}`,
         headers,
-        responseType: 'stream'
+        responseType: isNode ? 'stream' : 'blob'
       });
     } catch (ex) {
       switch (ex.response.status) {
@@ -101,12 +104,15 @@ class Depot {
     }
 
     const { fileName, contentType } = JSON.parse(response.headers['x-metadata']);
-    const stream = response.data;
+    const content = response.data;
 
     return {
-      stream,
+      content,
       fileName,
-      contentType
+      contentType,
+      async asDataUrl () {
+        return await convertContentToDataUrl({ content, contentType });
+      }
     };
   }
 
@@ -115,7 +121,7 @@ class Depot {
       throw new Error('Id is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id };
     const headers = { 'x-metadata': JSON.stringify(metadata) };
@@ -127,7 +133,7 @@ class Depot {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/remove-blob`,
+        url: `${protocol}://${host}:${port}/api/v1/remove-blob`,
         headers
       });
     } catch (ex) {
@@ -150,7 +156,7 @@ class Depot {
       throw new Error('To is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id };
     const headers = {
@@ -165,7 +171,7 @@ class Depot {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/transfer-ownership`,
+        url: `${protocol}://${host}:${port}/api/v1/transfer-ownership`,
         headers
       });
     } catch (ex) {
@@ -188,7 +194,7 @@ class Depot {
       throw new Error('Is authorized is missing.');
     }
 
-    const { host, port, token } = this;
+    const { protocol, host, port, token } = this;
 
     const metadata = { id, isAuthorized };
     const headers = { 'x-metadata': JSON.stringify(metadata) };
@@ -200,7 +206,7 @@ class Depot {
     try {
       await request({
         method: 'post',
-        url: `https://${host}:${port}/api/v1/authorize`,
+        url: `${protocol}://${host}:${port}/api/v1/authorize`,
         headers
       });
     } catch (ex) {
@@ -216,4 +222,4 @@ class Depot {
   }
 }
 
-module.exports = Depot;
+module.exports = DepotClient;
