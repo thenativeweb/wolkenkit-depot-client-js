@@ -22,7 +22,7 @@ class DepotClient {
     this.token = token;
   }
 
-  async addBlob ({ content, fileName, contentType, isAuthorized }) {
+  async addFile ({ content, fileName, contentType, isAuthorized }) {
     if (!content) {
       throw new Error('Content is missing.');
     }
@@ -52,11 +52,15 @@ class DepotClient {
     try {
       response = await request({
         method: 'post',
-        url: `${protocol}://${host}:${port}/api/v1/add-blob`,
+        url: `${protocol}://${host}:${port}/api/v1/add-file`,
         data: content,
         headers
       });
     } catch (ex) {
+      if (!ex.response) {
+        throw ex;
+      }
+
       switch (ex.response.status) {
         case 401:
           throw new Error('Authentication required.');
@@ -70,7 +74,7 @@ class DepotClient {
     return id;
   }
 
-  async getBlob ({ id }) {
+  async getFile ({ id }) {
     if (!id) {
       throw new Error('Id is missing.');
     }
@@ -88,16 +92,20 @@ class DepotClient {
     try {
       response = await request({
         method: 'get',
-        url: `${protocol}://${host}:${port}/api/v1/blob/${id}`,
+        url: `${protocol}://${host}:${port}/api/v1/file/${id}`,
         headers,
         responseType: isNode ? 'stream' : 'blob'
       });
     } catch (ex) {
+      if (!ex.response) {
+        throw ex;
+      }
+
       switch (ex.response.status) {
         case 401:
           throw new Error('Authentication required.');
         case 404:
-          throw new Error('Blob not found.');
+          throw new Error('File not found.');
         default:
           throw ex;
       }
@@ -116,7 +124,7 @@ class DepotClient {
     };
   }
 
-  async removeBlob ({ id }) {
+  async removeFile ({ id }) {
     if (!id) {
       throw new Error('Id is missing.');
     }
@@ -133,15 +141,19 @@ class DepotClient {
     try {
       await request({
         method: 'post',
-        url: `${protocol}://${host}:${port}/api/v1/remove-blob`,
+        url: `${protocol}://${host}:${port}/api/v1/remove-file`,
         headers
       });
     } catch (ex) {
+      if (!ex.response) {
+        throw ex;
+      }
+
       switch (ex.response.status) {
         case 401:
           throw new Error('Authentication required.');
         case 404:
-          throw new Error('Blob not found.');
+          throw new Error('File not found.');
         default:
           throw ex;
       }
@@ -175,11 +187,15 @@ class DepotClient {
         headers
       });
     } catch (ex) {
+      if (!ex.response) {
+        throw ex;
+      }
+
       switch (ex.response.status) {
         case 401:
           throw new Error('Authentication required.');
         case 404:
-          throw new Error('Blob not found.');
+          throw new Error('File not found.');
         default:
           throw ex;
       }
@@ -210,11 +226,15 @@ class DepotClient {
         headers
       });
     } catch (ex) {
+      if (!ex.response) {
+        throw ex;
+      }
+
       switch (ex.response.status) {
         case 401:
           throw new Error('Authentication required.');
         case 404:
-          throw new Error('Blob not found.');
+          throw new Error('File not found.');
         default:
           throw ex;
       }

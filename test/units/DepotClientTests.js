@@ -37,44 +37,44 @@ suite('DepotClient', () => {
       });
     });
 
-    suite('addBlob', () => {
+    suite('addFile', () => {
       test('is a function.', async () => {
-        assert.that(depotClient.addBlob).is.ofType('function');
+        assert.that(depotClient.addFile).is.ofType('function');
       });
 
       test('throws an error if content is missing.', async () => {
         await assert.that(async () => {
-          await depotClient.addBlob({});
+          await depotClient.addFile({});
         }).is.throwingAsync('Content is missing.');
       });
 
       test('throws an error if file name is missing.', async () => {
         await assert.that(async () => {
-          await depotClient.addBlob({ content: {}});
+          await depotClient.addFile({ content: {}});
         }).is.throwingAsync('File name is missing.');
       });
     });
 
-    suite('getBlob', () => {
+    suite('getFile', () => {
       test('is a function.', async () => {
-        assert.that(depotClient.getBlob).is.ofType('function');
+        assert.that(depotClient.getFile).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depotClient.getBlob({});
+          await depotClient.getFile({});
         }).is.throwingAsync('Id is missing.');
       });
     });
 
-    suite('removeBlob', () => {
+    suite('removeFile', () => {
       test('is a function.', async () => {
-        assert.that(depotClient.removeBlob).is.ofType('function');
+        assert.that(depotClient.removeFile).is.ofType('function');
       });
 
       test('throws an error if id is missing.', async () => {
         await assert.that(async () => {
-          await depotClient.removeBlob({});
+          await depotClient.removeFile({});
         }).is.throwingAsync('Id is missing.');
       });
     });

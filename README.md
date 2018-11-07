@@ -1,10 +1,10 @@
 # wolkenkit-depot-client
 
-wolkenkit-depot-client is a client to access the wolkenkit-depot blob storage.
+wolkenkit-depot-client is a client for accessing wolkenkit file storage.
 
 ## Documentation
 
-See [accessing blob storage](https://docs.wolkenkit.io/latest/reference/using-blob-storage/accessing-blob-storage/) on how to use this module to store files as blobs from within a [wolkenkit](https://www.wolkenkit.io) application.
+See [storing large files](https://docs.wolkenkit.io/latest/reference/storing-large-files/accessing-file-storage/) on how to use this module to store large files from within a [wolkenkit](https://www.wolkenkit.io) application.
 
 ## Running the build
 

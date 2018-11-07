@@ -32,15 +32,15 @@ suite('Node.js', () => {
     });
   });
 
-  suite('addBlob', () => {
+  suite('addFile', () => {
     test('returns the id.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       assert.that(uuid.is(id)).is.true();
     });
 
-    test('throws an error if the user is not authorized to add blobs.', async () => {
+    test('throws an error if the user is not authorized to add files.', async () => {
       depot = new DepotClient({
         host: 'localhost',
         port: 3000
@@ -49,47 +49,47 @@ suite('Node.js', () => {
       const { content, fileName } = getUpload();
 
       await assert.that(async () => {
-        await depot.addBlob({ content, fileName });
+        await depot.addFile({ content, fileName });
       }).is.throwingAsync('Authentication required.');
     });
   });
 
-  suite('getBlob', () => {
-    test('returns the blob.', async () => {
+  suite('getFile', () => {
+    test('returns the file.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
-      const blob = await depot.getBlob({ id });
+      const file = await depot.getFile({ id });
 
-      blob.content.resume();
+      file.content.resume();
 
-      assert.that(blob.content).is.instanceOf(Readable);
-      assert.that(blob.fileName).is.equalTo(fileName);
-      assert.that(blob.contentType).is.equalTo('application/octet-stream');
+      assert.that(file.content).is.instanceOf(Readable);
+      assert.that(file.fileName).is.equalTo(fileName);
+      assert.that(file.contentType).is.equalTo('application/octet-stream');
     });
 
-    test('returns the blob with the specified content type.', async () => {
+    test('returns the file with the specified content type.', async () => {
       const { content, fileName, contentType } = getUpload();
-      const id = await depot.addBlob({ content, fileName, contentType });
+      const id = await depot.addFile({ content, fileName, contentType });
 
-      const blob = await depot.getBlob({ id });
+      const file = await depot.getFile({ id });
 
-      blob.content.resume();
+      file.content.resume();
 
-      assert.that(blob.contentType).is.equalTo(contentType);
+      assert.that(file.contentType).is.equalTo(contentType);
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await assert.that(async () => {
-        await depot.getBlob({ id });
-      }).is.throwingAsync('Blob not found.');
+        await depot.getFile({ id });
+      }).is.throwingAsync('File not found.');
     });
 
-    test('throws an error if the user is not authorized to get a blob.', async () => {
+    test('throws an error if the user is not authorized to get a file.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -97,17 +97,17 @@ suite('Node.js', () => {
       });
 
       await assert.that(async () => {
-        await depotOther.getBlob({ id });
+        await depotOther.getFile({ id });
       }).is.throwingAsync('Authentication required.');
     });
 
     suite('asDataUrl', () => {
       test('returns the data url.', async () => {
         const { content, fileName, contentType } = getUpload();
-        const id = await depot.addBlob({ content, fileName, contentType });
+        const id = await depot.addFile({ content, fileName, contentType });
 
-        const blob = await depot.getBlob({ id });
-        const dataUrl = await blob.asDataUrl();
+        const file = await depot.getFile({ id });
+        const dataUrl = await file.asDataUrl();
 
         assert.that(dataUrl).is.startingWith('data:image/png;base64,iVBORw0KGgoAAAAN');
         assert.that(dataUrl).is.endingWith('AAAASUVORK5CYII=');
@@ -115,31 +115,31 @@ suite('Node.js', () => {
     });
   });
 
-  suite('removeBlob', () => {
-    test('removes the blob.', async () => {
+  suite('removeFile', () => {
+    test('removes the file.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       await assert.that(async () => {
-        await depot.removeBlob({ id });
+        await depot.removeFile({ id });
       }).is.not.throwingAsync();
 
       await assert.that(async () => {
-        await depot.getBlob({ id });
-      }).is.throwingAsync('Blob not found.');
+        await depot.getFile({ id });
+      }).is.throwingAsync('File not found.');
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await assert.that(async () => {
-        await depot.removeBlob({ id });
-      }).is.throwingAsync('Blob not found.');
+        await depot.removeFile({ id });
+      }).is.throwingAsync('File not found.');
     });
 
-    test('throws an error if the user is not authorized to remove a blob.', async () => {
+    test('throws an error if the user is not authorized to remove a file.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -147,7 +147,7 @@ suite('Node.js', () => {
       });
 
       await assert.that(async () => {
-        await depotOther.removeBlob({ id });
+        await depotOther.removeFile({ id });
       }).is.throwingAsync('Authentication required.');
     });
   });
@@ -155,28 +155,28 @@ suite('Node.js', () => {
   suite('transferOwnership', () => {
     test('transfers the ownership.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       await assert.that(async () => {
         await depot.transferOwnership({ id, to: uuid() });
       }).is.not.throwingAsync();
 
       await assert.that(async () => {
-        await depot.getBlob({ id });
+        await depot.getFile({ id });
       }).is.throwingAsync('Authentication required.');
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await assert.that(async () => {
         await depot.transferOwnership({ id, to: uuid() });
-      }).is.throwingAsync('Blob not found.');
+      }).is.throwingAsync('File not found.');
     });
 
     test('throws an error if the user is not authorized to transfer the ownership.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
         host: 'localhost',
@@ -190,12 +190,12 @@ suite('Node.js', () => {
   });
 
   suite('authorize', () => {
-    test('authorizes the blob.', async () => {
+    test('authorizes the file.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 
@@ -208,34 +208,34 @@ suite('Node.js', () => {
         port: 3000
       });
 
-      let blob;
+      let file;
 
       await assert.that(async () => {
-        blob = await depotPublic.getBlob({ id });
+        file = await depotPublic.getFile({ id });
       }).is.not.throwingAsync();
 
-      blob.content.resume();
+      file.content.resume();
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 
       await assert.that(async () => {
         await depot.authorize({ id, isAuthorized });
-      }).is.throwingAsync('Blob not found.');
+      }).is.throwingAsync('File not found.');
     });
 
     test('throws an error if the user is not authorized to authorize.', async () => {
       const { content, fileName } = getUpload();
-      const id = await depot.addBlob({ content, fileName });
+      const id = await depot.addFile({ content, fileName });
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 

@@ -39,7 +39,7 @@ const createClient = async function (options = {}) {
   });
 };
 
-const selectFileAndAddBlob = async function (options = {}) {
+const selectFileAndAddFile = async function (options = {}) {
   const fileInput = window.document.getElementById('file-input');
 
   const file = fileInput.files[0];
@@ -48,15 +48,15 @@ const selectFileAndAddBlob = async function (options = {}) {
     throw new Error('Input not working.');
   }
 
-  return await window.client.addBlob({
+  return await window.client.addFile({
     content: file,
     fileName: 'wolkenkit.png',
     contentType: options.contentType
   });
 };
 
-const getBlobAndTransformIntoArray = async function (options = {}) {
-  const { content, fileName, contentType } = await window.client.getBlob({ id: options.id });
+const getFileAndTransformIntoArray = async function (options = {}) {
+  const { content, fileName, contentType } = await window.client.getFile({ id: options.id });
 
   const result = await new Promise((resolve, reject) => {
     const reader = new window.FileReader();
@@ -79,10 +79,10 @@ const getBlobAndTransformIntoArray = async function (options = {}) {
   return result;
 };
 
-const getBlobAndTransformIntoDataUrl = async function (options = {}) {
-  const blob = await window.client.getBlob({ id: options.id });
+const getFileAndTransformIntoDataUrl = async function (options = {}) {
+  const file = await window.client.getFile({ id: options.id });
 
-  const dataUrl = await blob.asDataUrl();
+  const dataUrl = await file.asDataUrl();
 
   return dataUrl;
 };
@@ -120,64 +120,64 @@ suite('browser', function () {
     await browser.close();
   });
 
-  suite('addBlob', () => {
+  suite('addFile', () => {
     test('returns the id.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       assert.that(uuid.is(id)).is.true();
     });
 
-    test('throws an error if the user is not authorized to add blobs.', async () => {
+    test('throws an error if the user is not authorized to add files.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { });
 
       await assert.that(async () => {
-        await page.evaluate(selectFileAndAddBlob);
+        await page.evaluate(selectFileAndAddFile);
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
     });
   });
 
-  suite('getBlob', () => {
-    test('returns the blob.', async () => {
+  suite('getFile', () => {
+    test('returns the file.', async () => {
       const originalFile = await chooseFileToUpload({ page });
       const originalImage = Array.from(new Uint8Array(await readFile(originalFile.dataPath)));
 
       await page.evaluate(createClient, { token });
-      const id = await page.evaluate(selectFileAndAddBlob);
-      const result = await page.evaluate(getBlobAndTransformIntoArray, { id });
+      const id = await page.evaluate(selectFileAndAddFile);
+      const result = await page.evaluate(getFileAndTransformIntoArray, { id });
 
       assert.that(result.content).is.equalTo(originalImage);
       assert.that(result.fileName).is.equalTo(originalFile.fileName);
       assert.that(result.contentType).is.equalTo('application/octet-stream');
     });
 
-    test('returns the blob with the specified content type.', async () => {
+    test('returns the file with the specified content type.', async () => {
       const originalFile = await chooseFileToUpload({ page });
 
       await page.evaluate(createClient, { token });
-      const id = await page.evaluate(selectFileAndAddBlob, { contentType: originalFile.contentType });
-      const result = await page.evaluate(getBlobAndTransformIntoArray, { id });
+      const id = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
+      const result = await page.evaluate(getFileAndTransformIntoArray, { id });
 
       assert.that(result.contentType).is.equalTo(originalFile.contentType);
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await page.evaluate(createClient, { token });
 
       await assert.that(async () => {
-        await page.evaluate(getBlobAndTransformIntoArray, { id });
-      }).is.throwingAsync(ex => ex.message.includes('Blob not found.'));
+        await page.evaluate(getFileAndTransformIntoArray, { id });
+      }).is.throwingAsync(ex => ex.message.includes('File not found.'));
     });
 
-    test('throws an error if the user is not authorized to get a blob.', async () => {
+    test('throws an error if the user is not authorized to get a file.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -186,7 +186,7 @@ suite('browser', function () {
             port: 3000
           });
 
-          return await window.otherClient.getBlob({ id: options.id });
+          return await window.otherClient.getFile({ id: options.id });
         }, { id });
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
     });
@@ -196,8 +196,8 @@ suite('browser', function () {
         const originalFile = await chooseFileToUpload({ page });
 
         await page.evaluate(createClient, { token });
-        const id = await page.evaluate(selectFileAndAddBlob, { contentType: originalFile.contentType });
-        const result = await page.evaluate(getBlobAndTransformIntoDataUrl, { id });
+        const id = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
+        const result = await page.evaluate(getFileAndTransformIntoDataUrl, { id });
 
         await page.evaluate(async options => {
           const image = new window.Image();
@@ -218,43 +218,43 @@ suite('browser', function () {
     });
   });
 
-  suite('removeBlob', () => {
-    test('removes the blob.', async () => {
+  suite('removeFile', () => {
+    test('removes the file.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
-          await window.client.removeBlob({ id: options.id });
+          await window.client.removeFile({ id: options.id });
         }, { id });
       }).is.not.throwingAsync();
 
       await assert.that(async () => {
         await page.evaluate(async options => {
-          await window.client.removeBlob({ id: options.id });
+          await window.client.removeFile({ id: options.id });
         }, { id });
-      }).is.throwingAsync(ex => ex.message.includes('Blob not found.'));
+      }).is.throwingAsync(ex => ex.message.includes('File not found.'));
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await page.evaluate(createClient, { token });
 
       await assert.that(async () => {
         await page.evaluate(async options => {
-          await window.client.removeBlob({ id: options.id });
+          await window.client.removeFile({ id: options.id });
         }, { id });
-      }).is.throwingAsync(ex => ex.message.includes('Blob not found.'));
+      }).is.throwingAsync(ex => ex.message.includes('File not found.'));
     });
 
-    test('throws an error if the user is not authorized to remove a blob.', async () => {
+    test('throws an error if the user is not authorized to remove a file.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -263,7 +263,7 @@ suite('browser', function () {
             port: 3000
           });
 
-          await window.otherClient.removeBlob({ id: options.id });
+          await window.otherClient.removeFile({ id: options.id });
         }, { id });
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
     });
@@ -274,7 +274,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       await page.evaluate(async options => {
         await window.client.transferOwnership({ id: options.id, to: options.newOwnerId });
@@ -282,12 +282,12 @@ suite('browser', function () {
 
       await assert.that(async () => {
         await page.evaluate(async options => {
-          await window.client.getBlob({ id: options.id });
+          await window.client.getFile({ id: options.id });
         }, { id });
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();
 
       await page.evaluate(createClient, { token });
@@ -296,14 +296,14 @@ suite('browser', function () {
         await page.evaluate(async options => {
           await window.client.transferOwnership({ id: options.id, to: options.newOwnerId });
         }, { id, newOwnerId: uuid() });
-      }).is.throwingAsync(ex => ex.message.includes('Blob not found.'));
+      }).is.throwingAsync(ex => ex.message.includes('File not found.'));
     });
 
     test('throws an error if the user is not authorized to transfer the ownership.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -319,15 +319,15 @@ suite('browser', function () {
   });
 
   suite('authorize', () => {
-    test('authorizes the blob.', async () => {
+    test('authorizes the file.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 
@@ -344,18 +344,18 @@ suite('browser', function () {
             port: 3000
           });
 
-          await window.publicClient.getBlob({ id: options.id });
+          await window.publicClient.getFile({ id: options.id });
         }, { id });
       }).is.not.throwingAsync();
     });
 
-    test('throws an error if the specified blob does not exist.', async () => {
+    test('throws an error if the specified file does not exist.', async () => {
       await page.evaluate(createClient, { token });
 
       const id = uuid();
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 
@@ -363,18 +363,18 @@ suite('browser', function () {
         await page.evaluate(async options => {
           await window.client.authorize({ id: options.id, isAuthorized: options.isAuthorized });
         }, { id, isAuthorized });
-      }).is.throwingAsync(ex => ex.message.includes('Blob not found.'));
+      }).is.throwingAsync(ex => ex.message.includes('File not found.'));
     });
 
     test('throws an error if the user is not authorized to authorize.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddBlob);
+      const id = await page.evaluate(selectFileAndAddFile);
 
       const isAuthorized = {
         queries: {
-          getBlob: { forPublic: true }
+          getFile: { forPublic: true }
         }
       };
 
@@ -385,9 +385,9 @@ suite('browser', function () {
             port: 3000
           });
 
-          const blobInBrowser = await window.otherClient.authorize({ id: options.id, isAuthorized: options.isAuthorized });
+          const fileInBrowser = await window.otherClient.authorize({ id: options.id, isAuthorized: options.isAuthorized });
 
-          return blobInBrowser.stream.size;
+          return fileInBrowser.stream.size;
         }, { id, isAuthorized });
       }).is.throwingAsync(ex => ex.message.includes('Authentication required.'));
     });

@@ -25,7 +25,7 @@ const pre = async function () {
       -d
       -p 3000:3000
       -p 3333:3333
-      -e "PORT=3000"
+      -e "HTTPS_PORT=3000"
       -e "KEYS=/wolkenkit/app/keys"
       -e "IDENTITYPROVIDER_CERTIFICATE=/wolkenkit/app/keys"
       -e "IDENTITYPROVIDER_NAME=auth.wolkenkit.io"
