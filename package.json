@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit-depot-client",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "wolkenkit-depot-client is a client for accessing wolkenkit file storage.",
   "contributors": [
     {
