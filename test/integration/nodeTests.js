@@ -26,6 +26,7 @@ suite('Node.js', () => {
 
   setup(async () => {
     depot = new DepotClient({
+      protocol: 'http',
       host: 'localhost',
       port: 3000,
       token: issueToken('Jane Doe')
@@ -42,6 +43,7 @@ suite('Node.js', () => {
 
     test('throws an error if the user is not authorized to add files.', async () => {
       depot = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });
@@ -92,6 +94,7 @@ suite('Node.js', () => {
       const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });
@@ -142,6 +145,7 @@ suite('Node.js', () => {
       const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });
@@ -179,6 +183,7 @@ suite('Node.js', () => {
       const id = await depot.addFile({ content, fileName });
 
       const depotOther = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });
@@ -204,6 +209,7 @@ suite('Node.js', () => {
       }).is.not.throwingAsync();
 
       const depotPublic = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });
@@ -240,6 +246,7 @@ suite('Node.js', () => {
       };
 
       const depotOther = new DepotClient({
+        protocol: 'http',
         host: 'localhost',
         port: 3000
       });

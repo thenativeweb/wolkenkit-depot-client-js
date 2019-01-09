@@ -33,6 +33,7 @@ const chooseFileToUpload = async function ({ page }) {
 
 const createClient = async function (options = {}) {
   window.client = new window.DepotClient({
+    protocol: 'http',
     host: 'localhost',
     port: 3000,
     token: options.token
@@ -107,10 +108,7 @@ suite('browser', function () {
   setup(async () => {
     token = issueToken('Jane Doe');
 
-    browser = await puppeteer.launch({
-      ignoreHTTPSErrors: true
-    });
-
+    browser = await puppeteer.launch();
     page = await browser.newPage();
 
     await page.goto('http://localhost:4000/');
@@ -182,6 +180,7 @@ suite('browser', function () {
       await assert.that(async () => {
         await page.evaluate(async options => {
           window.otherClient = new window.DepotClient({
+            protocol: 'http',
             host: 'localhost',
             port: 3000
           });
@@ -259,6 +258,7 @@ suite('browser', function () {
       await assert.that(async () => {
         await page.evaluate(async options => {
           window.otherClient = new window.DepotClient({
+            protocol: 'http',
             host: 'localhost',
             port: 3000
           });
@@ -308,6 +308,7 @@ suite('browser', function () {
       await assert.that(async () => {
         await page.evaluate(async options => {
           window.otherClient = new window.DepotClient({
+            protocol: 'http',
             host: 'localhost',
             port: 3000
           });
@@ -340,6 +341,7 @@ suite('browser', function () {
       await assert.that(async () => {
         await page.evaluate(async options => {
           window.publicClient = new window.DepotClient({
+            protocol: 'http',
             host: 'localhost',
             port: 3000
           });
@@ -381,6 +383,7 @@ suite('browser', function () {
       await assert.that(async () => {
         await page.evaluate(async options => {
           window.otherClient = new window.DepotClient({
+            protocol: 'http',
             host: 'localhost',
             port: 3000
           });
