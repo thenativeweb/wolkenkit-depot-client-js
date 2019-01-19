@@ -142,9 +142,11 @@ function () {
         }, _callee, this, [[11, 17]]);
       }));
 
-      return function addFile(_x) {
+      function addFile(_x) {
         return _addFile.apply(this, arguments);
-      };
+      }
+
+      return addFile;
     }()
   }, {
     key: "getFile",
@@ -246,9 +248,11 @@ function () {
                       }, _callee2, this);
                     }));
 
-                    return function asDataUrl() {
+                    function asDataUrl() {
                       return _asDataUrl.apply(this, arguments);
-                    };
+                    }
+
+                    return asDataUrl;
                   }()
                 });
 
@@ -260,9 +264,11 @@ function () {
         }, _callee3, this, [[6, 12]]);
       }));
 
-      return function getFile(_x2) {
+      function getFile(_x2) {
         return _getFile.apply(this, arguments);
-      };
+      }
+
+      return getFile;
     }()
   }, {
     key: "removeFile",
@@ -342,9 +348,11 @@ function () {
         }, _callee4, this, [[7, 12]]);
       }));
 
-      return function removeFile(_x3) {
+      function removeFile(_x3) {
         return _removeFile.apply(this, arguments);
-      };
+      }
+
+      return removeFile;
     }()
   }, {
     key: "transferOwnership",
@@ -433,9 +441,11 @@ function () {
         }, _callee5, this, [[9, 14]]);
       }));
 
-      return function transferOwnership(_x4) {
+      function transferOwnership(_x4) {
         return _transferOwnership.apply(this, arguments);
-      };
+      }
+
+      return transferOwnership;
     }()
   }, {
     key: "authorize",
@@ -524,9 +534,11 @@ function () {
         }, _callee6, this, [[9, 14]]);
       }));
 
-      return function authorize(_x5) {
+      function authorize(_x5) {
         return _authorize.apply(this, arguments);
-      };
+      }
+
+      return authorize;
     }()
   }]);
   return DepotClient;
