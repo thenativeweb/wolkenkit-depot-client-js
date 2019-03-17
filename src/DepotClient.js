@@ -1,7 +1,8 @@
 'use strict';
 
 const isNode = require('is-node'),
-      request = require('axios');
+      request = require('axios'),
+      uuid = require('uuidv4');
 
 const convertContentToDataUrl = require('./convertContentToDataUrl');
 
@@ -22,7 +23,7 @@ class DepotClient {
     this.token = token;
   }
 
-  async addFile ({ content, fileName, contentType, isAuthorized }) {
+  async addFile ({ id = uuid(), content, fileName, contentType, isAuthorized }) {
     if (!content) {
       throw new Error('Content is missing.');
     }
@@ -32,7 +33,7 @@ class DepotClient {
 
     const { protocol, host, port, token } = this;
 
-    const metadata = { fileName };
+    const metadata = { id, fileName };
 
     if (contentType) {
       metadata.contentType = contentType;
@@ -47,15 +48,15 @@ class DepotClient {
       headers.authorization = `Bearer ${token}`;
     }
 
-    let response;
-
     try {
-      response = await request({
+      await request({
         method: 'post',
         url: `${protocol}://${host}:${port}/api/v1/add-file`,
         data: content,
         headers
       });
+
+      return id;
     } catch (ex) {
       if (!ex.response) {
         throw ex;
@@ -68,10 +69,6 @@ class DepotClient {
           throw ex;
       }
     }
-
-    const { id } = response.data;
-
-    return id;
   }
 
   async getFile ({ id }) {

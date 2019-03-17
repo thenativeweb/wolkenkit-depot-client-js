@@ -29,7 +29,7 @@ suite('Node.js', () => {
       protocol: 'http',
       host: 'localhost',
       port: 3000,
-      token: issueToken('Jane Doe')
+      token: await issueToken('Jane Doe')
     });
   });
 
@@ -39,6 +39,14 @@ suite('Node.js', () => {
       const id = await depot.addFile({ content, fileName });
 
       assert.that(uuid.is(id)).is.true();
+    });
+
+    test('uses the given id.', async () => {
+      const id = uuid();
+      const { content, fileName } = getUpload();
+      const returnedId = await depot.addFile({ id, content, fileName });
+
+      assert.that(returnedId).is.equalTo(id);
     });
 
     test('throws an error if the user is not authorized to add files.', async () => {

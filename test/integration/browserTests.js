@@ -40,7 +40,7 @@ const createClient = async function (options = {}) {
   });
 };
 
-const selectFileAndAddFile = async function (options = {}) {
+const selectFileAndAddFile = async function ({ id, contentType } = {}) {
   const fileInput = window.document.getElementById('file-input');
 
   const file = fileInput.files[0];
@@ -50,19 +50,22 @@ const selectFileAndAddFile = async function (options = {}) {
   }
 
   return await window.client.addFile({
+    id,
     content: file,
     fileName: 'wolkenkit.png',
-    contentType: options.contentType
+    contentType
   });
 };
 
-const getFileAndTransformIntoArray = async function (options = {}) {
-  const { content, fileName, contentType } = await window.client.getFile({ id: options.id });
+const getFileAndTransformIntoArray = async function ({ id } = {}) {
+  const { content, fileName, contentType } = await window.client.getFile({ id });
 
   const result = await new Promise((resolve, reject) => {
     const reader = new window.FileReader();
 
     try {
+      // Please note that 'loadend' is not a typo (of 'loaded'), but means
+      // 'load-end' (it's just written without the dash).
       reader.addEventListener('loadend', () => {
         resolve({
           content: Array.from(new Uint8Array(reader.result)),
@@ -106,7 +109,7 @@ suite('browser', function () {
   });
 
   setup(async () => {
-    token = issueToken('Jane Doe');
+    token = await issueToken('Jane Doe');
 
     browser = await puppeteer.launch();
     page = await browser.newPage();
@@ -122,9 +125,20 @@ suite('browser', function () {
     test('returns the id.', async () => {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
+
       const id = await page.evaluate(selectFileAndAddFile);
 
       assert.that(uuid.is(id)).is.true();
+    });
+
+    test('uses the given id.', async () => {
+      await chooseFileToUpload({ page });
+      await page.evaluate(createClient, { token });
+
+      const id = uuid();
+      const returnedId = await page.evaluate(selectFileAndAddFile, { id });
+
+      assert.that(returnedId).is.equalTo(id);
     });
 
     test('throws an error if the user is not authorized to add files.', async () => {

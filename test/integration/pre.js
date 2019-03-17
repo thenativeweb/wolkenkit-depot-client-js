@@ -27,8 +27,7 @@ const pre = async function () {
       -p 3333:3333
       -e "API_CORS_ORIGIN=*"
       -e "HTTP_PORT=3000"
-      -e "IDENTITYPROVIDER_CERTIFICATE=/wolkenkit/app/keys"
-      -e "IDENTITYPROVIDER_NAME=auth.wolkenkit.io"
+      -e "IDENTITYPROVIDERS=[{\\"issuer\\":\\"https://auth.thenativeweb.io\\",\\"certificate\\":\\"/wolkenkit/app/keys\\"}]"
       --name test-depot-integration
       thenativeweb/test-depot:latest
   `, { cwd: dockerFileDirectory });

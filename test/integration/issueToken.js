@@ -6,15 +6,21 @@ const fs = require('fs'),
 const Limes = require('limes');
 
 const limes = new Limes({
-  identityProviderName: 'auth.wolkenkit.io',
-  /* eslint-disable no-sync */
-  privateKey: fs.readFileSync(path.join(__dirname, '..', 'shared', 'docker', 'keys', 'privateKey.pem')),
-  certificate: fs.readFileSync(path.join(__dirname, '..', 'shared', 'docker', 'keys', 'certificate.pem'))
-  /* eslint-enable no-sync */
+  identityProviders: [
+    new Limes.IdentityProvider({
+      issuer: 'https://auth.thenativeweb.io',
+      /* eslint-disable no-sync */
+      privateKey: fs.readFileSync(path.join(__dirname, '..', 'shared', 'docker', 'keys', 'privateKey.pem')),
+      certificate: fs.readFileSync(path.join(__dirname, '..', 'shared', 'docker', 'keys', 'certificate.pem'))
+      /* eslint-enable no-sync */
+    })
+  ]
 });
 
-const issueToken = function (subject, payload) {
-  return limes.issueTokenFor(subject, payload);
+const issueToken = async function (subject, payload) {
+  const token = await limes.issueToken({ issuer: 'https://auth.thenativeweb.io', subject, payload });
+
+  return token;
 };
 
 module.exports = issueToken;
