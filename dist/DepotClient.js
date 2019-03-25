@@ -11,7 +11,8 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 var isNode = require('is-node'),
-    request = require('axios');
+    request = require('axios'),
+    uuid = require('uuidv4');
 
 var convertContentToDataUrl = require('./convertContentToDataUrl');
 
@@ -50,12 +51,13 @@ function () {
       var _addFile = (0, _asyncToGenerator2.default)(
       /*#__PURE__*/
       _regenerator.default.mark(function _callee(_ref2) {
-        var content, fileName, contentType, isAuthorized, protocol, host, port, token, metadata, headers, response, id;
+        var _ref2$id, id, content, fileName, contentType, isAuthorized, protocol, host, port, token, metadata, headers;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                content = _ref2.content, fileName = _ref2.fileName, contentType = _ref2.contentType, isAuthorized = _ref2.isAuthorized;
+                _ref2$id = _ref2.id, id = _ref2$id === void 0 ? uuid() : _ref2$id, content = _ref2.content, fileName = _ref2.fileName, contentType = _ref2.contentType, isAuthorized = _ref2.isAuthorized;
 
                 if (content) {
                   _context.next = 3;
@@ -75,6 +77,7 @@ function () {
               case 5:
                 protocol = this.protocol, host = this.host, port = this.port, token = this.token;
                 metadata = {
+                  id: id,
                   fileName: fileName
                 };
 
@@ -104,9 +107,7 @@ function () {
                 });
 
               case 14:
-                response = _context.sent;
-                _context.next = 26;
-                break;
+                return _context.abrupt("return", id);
 
               case 17:
                 _context.prev = 17;
@@ -131,10 +132,6 @@ function () {
                 throw _context.t0;
 
               case 26:
-                id = response.data.id;
-                return _context.abrupt("return", id);
-
-              case 28:
               case "end":
                 return _context.stop();
             }
@@ -245,7 +242,7 @@ function () {
                               return _context2.stop();
                           }
                         }
-                      }, _callee2, this);
+                      }, _callee2);
                     }));
 
                     function asDataUrl() {
