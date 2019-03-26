@@ -1,6 +1,7 @@
 'use strict';
 
-const isNode = require('is-node'),
+const EventEmitter2 = require('eventemitter2'),
+      isNode = require('is-node'),
       request = require('axios'),
       uuid = require('uuidv4');
 
@@ -8,7 +9,7 @@ const convertContentToDataUrl = require('./convertContentToDataUrl');
 
 const validProtocols = [ 'http', 'https' ];
 
-class DepotClient {
+class DepotClient extends EventEmitter2 {
   constructor ({ protocol = 'https', host, port = 443, token = '' }) {
     if (!validProtocols.includes(protocol)) {
       throw new Error('Invalid protocol.');
@@ -17,10 +18,44 @@ class DepotClient {
       throw new Error('Host is missing.');
     }
 
+    super({ wildcard: true, delimiter: '::' });
+
     this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.token = token;
+  }
+
+  processProgress ({ id, direction, startTime, progressEvent }) {
+    if (!id) {
+      throw new Error('Id is missing.');
+    }
+    if (!direction) {
+      throw new Error('Direction is missing.');
+    }
+    if (!startTime) {
+      throw new Error('Start time is missing.');
+    }
+    if (!progressEvent) {
+      throw new Error('Progress event is missing.');
+    }
+
+    const elapsedTime = Date.now() - startTime;
+
+    if (!progressEvent.lengthComputable) {
+      return this.emit(`progress::${id}`, { direction, elapsedTime });
+    }
+
+    const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+
+    if (progress === 0) {
+      return this.emit(`progress::${id}`, { direction, progress, elapsedTime });
+    }
+
+    const remainingProgress = 100 - progress;
+    const estimatedRemainingTime = Math.round(elapsedTime / progress * remainingProgress);
+
+    this.emit(`progress::${id}`, { direction, progress, elapsedTime, estimatedRemainingTime });
   }
 
   async addFile ({ id = uuid(), content, fileName, contentType, isAuthorized }) {
@@ -32,7 +67,6 @@ class DepotClient {
     }
 
     const { protocol, host, port, token } = this;
-
     const metadata = { id, fileName };
 
     if (contentType) {
@@ -48,12 +82,17 @@ class DepotClient {
       headers.authorization = `Bearer ${token}`;
     }
 
+    const startTime = Date.now();
+
     try {
       await request({
         method: 'post',
         url: `${protocol}://${host}:${port}/api/v1/add-file`,
         data: content,
-        headers
+        headers,
+        onUploadProgress: progressEvent => {
+          this.processProgress({ id, direction: 'upload', startTime, progressEvent });
+        }
       });
 
       return id;
@@ -68,6 +107,8 @@ class DepotClient {
         default:
           throw ex;
       }
+    } finally {
+      this.removeAllListeners(`progress::${id}`);
     }
   }
 
@@ -84,6 +125,7 @@ class DepotClient {
       headers.authorization = `Bearer ${token}`;
     }
 
+    const startTime = Date.now();
     let response;
 
     try {
@@ -91,7 +133,10 @@ class DepotClient {
         method: 'get',
         url: `${protocol}://${host}:${port}/api/v1/file/${id}`,
         headers,
-        responseType: isNode ? 'stream' : 'blob'
+        responseType: isNode ? 'stream' : 'blob',
+        onDownloadProgress: progressEvent => {
+          this.processProgress({ id, direction: 'download', startTime, progressEvent });
+        }
       });
     } catch (ex) {
       if (!ex.response) {
@@ -106,6 +151,8 @@ class DepotClient {
         default:
           throw ex;
       }
+    } finally {
+      this.removeAllListeners(`progress::${id}`);
     }
 
     const { fileName, contentType } = JSON.parse(response.headers['x-metadata']);

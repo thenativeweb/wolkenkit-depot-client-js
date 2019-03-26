@@ -49,6 +49,30 @@ suite('Node.js', () => {
       assert.that(returnedId).is.equalTo(id);
     });
 
+    /* eslint-disable mocha/no-skipped-tests */
+    test.skip('emits progress events.', async () => {
+      const id = uuid();
+      const { content, fileName } = getUpload();
+
+      const progressEvents = [];
+
+      depot.on(`progress::${id}`, progressEvent => {
+        progressEvents.push(progressEvent);
+      });
+
+      await depot.addFile({ id, content, fileName });
+
+      assert.that(progressEvents.length).is.atLeast(1);
+
+      const lastProgressEvent = progressEvents[progressEvents.length - 1];
+
+      assert.that(lastProgressEvent.direction).is.equalTo('upload');
+      assert.that(lastProgressEvent.progress).is.equalTo(100);
+      assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
+      assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);
+    });
+    /* eslint-enable mocha/no-skipped-tests */
+
     test('throws an error if the user is not authorized to add files.', async () => {
       depot = new DepotClient({
         protocol: 'http',
@@ -88,6 +112,32 @@ suite('Node.js', () => {
 
       assert.that(file.contentType).is.equalTo(contentType);
     });
+
+    /* eslint-disable mocha/no-skipped-tests */
+    test.skip('emits progress events.', async () => {
+      const id = uuid();
+      const { content, fileName } = getUpload();
+
+      await depot.addFile({ id, content, fileName });
+
+      const progressEvents = [];
+
+      depot.on(`progress::${id}`, progressEvent => {
+        progressEvents.push(progressEvent);
+      });
+
+      await depot.getFile({ id });
+
+      assert.that(progressEvents.length).is.atLeast(1);
+
+      const lastProgressEvent = progressEvents[progressEvents.length - 1];
+
+      assert.that(lastProgressEvent.direction).is.equalTo('download');
+      assert.that(lastProgressEvent.progress).is.equalTo(100);
+      assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
+      assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);
+    });
+    /* eslint-enable mocha/no-skipped-tests */
 
     test('throws an error if the specified file does not exist.', async () => {
       const id = uuid();

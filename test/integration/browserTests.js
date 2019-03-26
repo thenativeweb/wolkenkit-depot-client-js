@@ -19,7 +19,6 @@ const readFile = promisify(fs.readFile);
 
 const chooseFileToUpload = async function ({ page }) {
   const dataPath = path.join(__dirname, '..', 'shared', 'data', 'wolkenkit.png');
-
   const input = await page.$('#file-input');
 
   await input.uploadFile(dataPath);
@@ -49,15 +48,29 @@ const selectFileAndAddFile = async function ({ id, contentType } = {}) {
     throw new Error('Input not working.');
   }
 
-  return await window.client.addFile({
+  const progressEvents = [];
+
+  window.client.on(`progress::${id}`, progressEvent => {
+    progressEvents.push(progressEvent);
+  });
+
+  const returnedId = await window.client.addFile({
     id,
     content: file,
     fileName: 'wolkenkit.png',
     contentType
   });
+
+  return { id: returnedId, progressEvents };
 };
 
 const getFileAndTransformIntoArray = async function ({ id } = {}) {
+  const progressEvents = [];
+
+  window.client.on(`progress::${id}`, progressEvent => {
+    progressEvents.push(progressEvent);
+  });
+
   const { content, fileName, contentType } = await window.client.getFile({ id });
 
   const result = await new Promise((resolve, reject) => {
@@ -79,6 +92,8 @@ const getFileAndTransformIntoArray = async function ({ id } = {}) {
       reject(ex);
     }
   });
+
+  result.progressEvents = progressEvents;
 
   return result;
 };
@@ -126,7 +141,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       assert.that(uuid.is(id)).is.true();
     });
@@ -136,9 +151,28 @@ suite('browser', function () {
       await page.evaluate(createClient, { token });
 
       const id = uuid();
-      const returnedId = await page.evaluate(selectFileAndAddFile, { id });
+      const result = await page.evaluate(selectFileAndAddFile, { id });
+      const returnedId = result.id;
 
       assert.that(returnedId).is.equalTo(id);
+    });
+
+    test('emits progress events.', async () => {
+      await chooseFileToUpload({ page });
+      await page.evaluate(createClient, { token });
+
+      const id = uuid();
+
+      const { progressEvents } = await page.evaluate(selectFileAndAddFile, { id });
+
+      assert.that(progressEvents.length).is.atLeast(1);
+
+      const lastProgressEvent = progressEvents[progressEvents.length - 1];
+
+      assert.that(lastProgressEvent.direction).is.equalTo('upload');
+      assert.that(lastProgressEvent.progress).is.equalTo(100);
+      assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
+      assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);
     });
 
     test('throws an error if the user is not authorized to add files.', async () => {
@@ -157,7 +191,7 @@ suite('browser', function () {
       const originalImage = Array.from(new Uint8Array(await readFile(originalFile.dataPath)));
 
       await page.evaluate(createClient, { token });
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
       const result = await page.evaluate(getFileAndTransformIntoArray, { id });
 
       assert.that(result.content).is.equalTo(originalImage);
@@ -169,10 +203,27 @@ suite('browser', function () {
       const originalFile = await chooseFileToUpload({ page });
 
       await page.evaluate(createClient, { token });
-      const id = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
+      const { id } = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
       const result = await page.evaluate(getFileAndTransformIntoArray, { id });
 
       assert.that(result.contentType).is.equalTo(originalFile.contentType);
+    });
+
+    test('emits progress events.', async () => {
+      await chooseFileToUpload({ page });
+      await page.evaluate(createClient, { token });
+
+      const { id } = await page.evaluate(selectFileAndAddFile);
+      const { progressEvents } = await page.evaluate(getFileAndTransformIntoArray, { id });
+
+      assert.that(progressEvents.length).is.atLeast(1);
+
+      const lastProgressEvent = progressEvents[progressEvents.length - 1];
+
+      assert.that(lastProgressEvent.direction).is.equalTo('download');
+      assert.that(lastProgressEvent.progress).is.equalTo(100);
+      assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
+      assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);
     });
 
     test('throws an error if the specified file does not exist.', async () => {
@@ -189,7 +240,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -209,7 +260,7 @@ suite('browser', function () {
         const originalFile = await chooseFileToUpload({ page });
 
         await page.evaluate(createClient, { token });
-        const id = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
+        const { id } = await page.evaluate(selectFileAndAddFile, { contentType: originalFile.contentType });
         const result = await page.evaluate(getFileAndTransformIntoDataUrl, { id });
 
         await page.evaluate(async options => {
@@ -236,7 +287,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -267,7 +318,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -288,7 +339,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       await page.evaluate(async options => {
         await window.client.transferOwnership({ id: options.id, to: options.newOwnerId });
@@ -317,7 +368,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       await assert.that(async () => {
         await page.evaluate(async options => {
@@ -338,7 +389,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       const isAuthorized = {
         queries: {
@@ -386,7 +437,7 @@ suite('browser', function () {
       await chooseFileToUpload({ page });
       await page.evaluate(createClient, { token });
 
-      const id = await page.evaluate(selectFileAndAddFile);
+      const { id } = await page.evaluate(selectFileAndAddFile);
 
       const isAuthorized = {
         queries: {
