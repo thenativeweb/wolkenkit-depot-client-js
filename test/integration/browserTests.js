@@ -50,15 +50,14 @@ const selectFileAndAddFile = async function ({ id, contentType } = {}) {
 
   const progressEvents = [];
 
-  window.client.on(`progress::${id}`, progressEvent => {
-    progressEvents.push(progressEvent);
-  });
-
   const returnedId = await window.client.addFile({
     id,
     content: file,
     fileName: 'wolkenkit.png',
-    contentType
+    contentType,
+    onProgress (progressEvent) {
+      progressEvents.push(progressEvent);
+    }
   });
 
   return { id: returnedId, progressEvents };
@@ -67,11 +66,12 @@ const selectFileAndAddFile = async function ({ id, contentType } = {}) {
 const getFileAndTransformIntoArray = async function ({ id } = {}) {
   const progressEvents = [];
 
-  window.client.on(`progress::${id}`, progressEvent => {
-    progressEvents.push(progressEvent);
+  const { content, fileName, contentType } = await window.client.getFile({
+    id,
+    onProgress (progressEvent) {
+      progressEvents.push(progressEvent);
+    }
   });
-
-  const { content, fileName, contentType } = await window.client.getFile({ id });
 
   const result = await new Promise((resolve, reject) => {
     const reader = new window.FileReader();

@@ -58,7 +58,16 @@ class DepotClient extends EventEmitter2 {
     this.emit(`progress::${id}`, { type, progress, elapsedTime, estimatedRemainingTime });
   }
 
-  async addFile ({ id = uuid(), content, fileName, contentType, isAuthorized }) {
+  async addFile ({
+    id = uuid(),
+    content,
+    fileName,
+    contentType,
+    isAuthorized,
+    onProgress = () => {
+      // Intentionally left blank.
+    }
+  }) {
     if (!content) {
       throw new Error('Content is missing.');
     }
@@ -83,6 +92,8 @@ class DepotClient extends EventEmitter2 {
     }
 
     const startTime = Date.now();
+
+    this.on(`progress::${id}`, onProgress);
 
     try {
       await request({
@@ -112,7 +123,12 @@ class DepotClient extends EventEmitter2 {
     }
   }
 
-  async getFile ({ id }) {
+  async getFile ({
+    id,
+    onProgress = () => {
+      // Intentionally left blank.
+    }
+  }) {
     if (!id) {
       throw new Error('Id is missing.');
     }
@@ -127,6 +143,8 @@ class DepotClient extends EventEmitter2 {
 
     const startTime = Date.now();
     let response;
+
+    this.on(`progress::${id}`, onProgress);
 
     try {
       response = await request({

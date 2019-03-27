@@ -50,17 +50,24 @@ suite('Node.js', () => {
     });
 
     /* eslint-disable mocha/no-skipped-tests */
+    // This test has been introduced to keep the Node.js tests in sync with the
+    // browser tests. However, right now, axios 0.18.0 does not support progress
+    // events for Node.js. Once this changes, we can remove the skip call from
+    // this test.
     test.skip('emits progress events.', async () => {
       const id = uuid();
       const { content, fileName } = getUpload();
 
       const progressEvents = [];
 
-      depot.on(`progress::${id}`, progressEvent => {
-        progressEvents.push(progressEvent);
+      await depot.addFile({
+        id,
+        content,
+        fileName,
+        onProgress (progressEvent) {
+          progressEvents.push(progressEvent);
+        }
       });
-
-      await depot.addFile({ id, content, fileName });
 
       assert.that(progressEvents.length).is.atLeast(1);
 
@@ -114,6 +121,10 @@ suite('Node.js', () => {
     });
 
     /* eslint-disable mocha/no-skipped-tests */
+    // This test has been introduced to keep the Node.js tests in sync with the
+    // browser tests. However, right now, axios 0.18.0 does not support progress
+    // events for Node.js. Once this changes, we can remove the skip call from
+    // this test.
     test.skip('emits progress events.', async () => {
       const id = uuid();
       const { content, fileName } = getUpload();
@@ -122,11 +133,12 @@ suite('Node.js', () => {
 
       const progressEvents = [];
 
-      depot.on(`progress::${id}`, progressEvent => {
-        progressEvents.push(progressEvent);
+      await depot.getFile({
+        id,
+        onProgress (progressEvent) {
+          progressEvents.push(progressEvent);
+        }
       });
-
-      await depot.getFile({ id });
 
       assert.that(progressEvents.length).is.atLeast(1);
 
