@@ -169,7 +169,7 @@ suite('browser', function () {
 
       const lastProgressEvent = progressEvents[progressEvents.length - 1];
 
-      assert.that(lastProgressEvent.direction).is.equalTo('upload');
+      assert.that(lastProgressEvent.type).is.equalTo('upload');
       assert.that(lastProgressEvent.progress).is.equalTo(100);
       assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
       assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);
@@ -220,7 +220,7 @@ suite('browser', function () {
 
       const lastProgressEvent = progressEvents[progressEvents.length - 1];
 
-      assert.that(lastProgressEvent.direction).is.equalTo('download');
+      assert.that(lastProgressEvent.type).is.equalTo('download');
       assert.that(lastProgressEvent.progress).is.equalTo(100);
       assert.that(lastProgressEvent.elapsedTime).is.atLeast(1);
       assert.that(lastProgressEvent.estimatedRemainingTime).is.equalTo(0);

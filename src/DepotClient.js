@@ -26,12 +26,12 @@ class DepotClient extends EventEmitter2 {
     this.token = token;
   }
 
-  processProgress ({ id, direction, startTime, progressEvent }) {
+  processProgress ({ id, type, startTime, progressEvent }) {
     if (!id) {
       throw new Error('Id is missing.');
     }
-    if (!direction) {
-      throw new Error('Direction is missing.');
+    if (!type) {
+      throw new Error('Type is missing.');
     }
     if (!startTime) {
       throw new Error('Start time is missing.');
@@ -43,19 +43,19 @@ class DepotClient extends EventEmitter2 {
     const elapsedTime = Date.now() - startTime;
 
     if (!progressEvent.lengthComputable) {
-      return this.emit(`progress::${id}`, { direction, elapsedTime });
+      return this.emit(`progress::${id}`, { type, elapsedTime });
     }
 
     const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
 
     if (progress === 0) {
-      return this.emit(`progress::${id}`, { direction, progress, elapsedTime });
+      return this.emit(`progress::${id}`, { type, progress, elapsedTime });
     }
 
     const remainingProgress = 100 - progress;
     const estimatedRemainingTime = Math.round(elapsedTime / progress * remainingProgress);
 
-    this.emit(`progress::${id}`, { direction, progress, elapsedTime, estimatedRemainingTime });
+    this.emit(`progress::${id}`, { type, progress, elapsedTime, estimatedRemainingTime });
   }
 
   async addFile ({ id = uuid(), content, fileName, contentType, isAuthorized }) {
@@ -91,7 +91,7 @@ class DepotClient extends EventEmitter2 {
         data: content,
         headers,
         onUploadProgress: progressEvent => {
-          this.processProgress({ id, direction: 'upload', startTime, progressEvent });
+          this.processProgress({ id, type: 'upload', startTime, progressEvent });
         }
       });
 
@@ -135,7 +135,7 @@ class DepotClient extends EventEmitter2 {
         headers,
         responseType: isNode ? 'stream' : 'blob',
         onDownloadProgress: progressEvent => {
-          this.processProgress({ id, direction: 'download', startTime, progressEvent });
+          this.processProgress({ id, type: 'download', startTime, progressEvent });
         }
       });
     } catch (ex) {
