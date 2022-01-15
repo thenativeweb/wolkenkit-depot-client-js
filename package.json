@@ -32,7 +32,7 @@
     "limes": "2.0.0",
     "puppeteer": "1.13.0",
     "roboter": "4.0.2",
-    "shelljs": "0.8.3",
+    "shelljs": "0.8.5",
     "webpack": "4.29.6"
   },
   "repository": {
