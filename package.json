@@ -28,7 +28,7 @@
     "assertthat": "2.0.3",
     "async-retry": "1.2.3",
     "common-tags": "1.8.0",
-    "express": "4.16.4",
+    "express": "4.17.3",
     "limes": "2.0.0",
     "puppeteer": "1.13.0",
     "roboter": "4.0.2",
